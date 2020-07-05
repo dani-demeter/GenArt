@@ -23,13 +23,15 @@ var inDialogue = false;
 function setup() {
     setupCoolors();
     bg = coolors.richblack;
-    fg = coolors.spirodisco;
-    fg.setAlpha(25);
+    fg = [coolors.spirodisco];
+    fg[0].setAlpha(25);
     w = window.innerWidth;
     h = window.innerHeight;
     cnv = createCanvas(w, h);
-    background(bg);
     cnv.position(0, 0);
+
+    noStroke();
+    background(bg);
 
     setupAngles();
 
@@ -56,6 +58,7 @@ class Particle {
     constructor() {
         this.x = Math.random() * w;
         this.y = Math.random() * h;
+        this.color = fg[getRandomInt(0, fg.length)];
     }
 
     update() {
@@ -81,6 +84,7 @@ class Particle {
     }
 
     draw() {
+        fill(this.color);
         var tx = this.x - w / 2;
         var ty = this.y - h / 2;
         for (var i = 0; i < symmetry; i++) {
@@ -94,6 +98,12 @@ class Particle {
     }
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
 function inRange(x, y) {
     return (x > 0 && y > 0 && x < w && y < h);
 }
@@ -105,12 +115,9 @@ function draw() {
 
 function ChangeOffset() {
     OFFSET_Z += OFFSET_DZ;
-    console.log(OFFSET_Z);
 }
 
 function UpdateAndDrawParticles() {
-    noStroke();
-    fill(fg);
     for (var i = 0; i < NUM_PARTICLES; i++) {
         particles[i].update();
         particles[i].draw();
@@ -142,20 +149,54 @@ async function handlePress() {
     }
 
     var {
-        value: newColor
+        value: newColors
     } = await Swal.fire({
-        title: "Choose particle color",
-        input: 'radio',
-        inputOptions: {
-            'spirodisco': 'Blue',
-            'gold': 'Gold',
-            'infrared': 'Red',
-            'mint': 'Green',
-            'ghostwhite': 'White'
-        },
-    });
+        title: 'Choose particle color(s)',
+        html: `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="spirodisco" id="checkbox1">
+                <label class="form-check-label" for="checkbox1">
+                    Blue
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="gold" id="checkbox2">
+                <label class="form-check-label" for="checkbox2">
+                    Gold
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="infrared" id="checkbox3">
+                <label class="form-check-label" for="checkbox3">
+                    Red
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="mint" id="checkbox4">
+                <label class="form-check-label" for="checkbox4">
+                    Green
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="ghostwhite" id="checkbox5">
+                <label class="form-check-label" for="checkbox5">
+                    White
+                </label>
+            </div>
+            `,
+        focusConfirm: false,
+        preConfirm: () => {
+            return [
+                document.getElementById('checkbox1').checked ? document.getElementById('checkbox1').value : "",
+                document.getElementById('checkbox2').checked ? document.getElementById('checkbox2').value : "",
+                document.getElementById('checkbox3').checked ? document.getElementById('checkbox3').value : "",
+                document.getElementById('checkbox4').checked ? document.getElementById('checkbox4').value : "",
+                document.getElementById('checkbox5').checked ? document.getElementById('checkbox5').value : ""
+            ]
+        }
+    })
 
-    if (!newColor) {
+    if (!newColors) {
         inDialogue = false;
         return;
     }
@@ -190,14 +231,20 @@ async function handlePress() {
         },
         inputValue: 0.0005
     })
-    if(!newChange){
+    if (!newChange) {
         inDialogue = false;
         return;
     }
+
     OFFSET_DZ = parseInt(newChange);
     bg = coolors[newBgColor];
-    fg = coolors[newColor];
-    fg.setAlpha(25);
+    fg = [];
+    for(var i = 0; i<newColors.length; i++){
+        if(newColors[i]!=""){
+            fg.push(coolors[newColors[i]]);
+            fg[fg.length-1].setAlpha(25);
+        }
+    }
     background(bg);
     symmetry = parseInt(newSym);
     setupAngles();
