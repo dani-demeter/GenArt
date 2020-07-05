@@ -1,5 +1,6 @@
 var w, h;
 var cnv;
+var onPhone = false;
 
 var NUM_PARTICLES = 50;
 var PARTICLE_R = 2;
@@ -46,46 +47,54 @@ function setup() {
     cnv = createCanvas(w, h);
     cnv.position(0, 0);
     cnv.mousePressed(handleCnvPress);
+    onPhone = (w<600);
+    var s = onPhone ? 100 : 50;
 
     var numParticlesButton = createButton('');
     numParticlesButton.class('my-button');
     numParticlesButton.id('num-particles-button');
     numParticlesButton.position(10, 10);
+    numParticlesButton.size(s, s);
     numParticlesButton.mousePressed(handleNumParticlesButton);
     buttons.push(numParticlesButton);
 
     var bgColorButton = createButton('');
     bgColorButton.class('my-button');
     bgColorButton.id('bg-color-button');
-    bgColorButton.position(10, 70);
+    bgColorButton.position(10, 10*2+s);
+    bgColorButton.size(s, s);
     bgColorButton.mousePressed(handleBGButton);
     buttons.push(bgColorButton);
 
     var fgColorButton = createButton('');
     fgColorButton.class('my-button');
     fgColorButton.id('fg-color-button');
-    fgColorButton.position(10, 130);
+    fgColorButton.position(10, 10*3+s*2);
+    fgColorButton.size(s, s);
     fgColorButton.mousePressed(handleFGButton);
     buttons.push(fgColorButton);
 
     var symButton = createButton('');
     symButton.class('my-button');
     symButton.id('sym-button');
-    symButton.position(10, 190);
+    symButton.position(10, 10*4+s*3);
+    symButton.size(s, s);
     symButton.mousePressed(handleSymButton);
     buttons.push(symButton);
 
     var dzButton = createButton('');
     dzButton.class('my-button');
     dzButton.id('dz-button');
-    dzButton.position(10, 250);
+    dzButton.position(10, 10*5+s*4);
+    dzButton.size(s, s);
     dzButton.mousePressed(handleDZButton);
     buttons.push(dzButton);
 
     var scaleButton = createButton('');
     scaleButton.class('my-button');
     scaleButton.id('scale-button');
-    scaleButton.position(10, 310);
+    scaleButton.position(10, 10*6+s*5);
+    scaleButton.size(s, s);
     scaleButton.mousePressed(handleScaleButton);
     buttons.push(scaleButton);
     handleCnvPress();
@@ -380,174 +389,4 @@ function resetSim(){
     setupAngles();
     particles = [];
     setupParticles();
-}
-
-async function handlePress() {
-
-    var {
-        value: newNum
-    } = await Swal.fire({
-        title: 'Choose number of particles',
-        input: 'range',
-        inputAttributes: {
-            min: 1,
-            max: 100,
-            step: 1
-        },
-        inputValue: NUM_PARTICLES
-    })
-    if (!newNum) {
-        inDialogue = false;
-        return;
-    }
-
-    var {
-        value: newBgColor
-    } = await Swal.fire({
-        title: "Choose background color",
-        input: 'radio',
-        inputOptions: {
-            'richblack': 'Black',
-            'ghostwhite': 'White',
-        },
-        inputValue: (bg == coolors['richblack'] ? 'richblack' : 'ghostwhite')
-    });
-
-    if (!newBgColor) {
-        inDialogue = false;
-        return;
-    }
-
-    var {
-        value: newColors
-    } = await Swal.fire({
-        title: 'Choose particle color(s)',
-        html: `
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="spirodisco" id="checkbox1" ${fgc.includes('spirodisco') ? "checked" : ""}>
-                <label class="form-check-label" for="checkbox1">
-                    Blue
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="gold" id="checkbox2" ${fgc.includes('gold') ? "checked" : ""}>
-                <label class="form-check-label" for="checkbox2">
-                    Gold
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="infrared" id="checkbox3" ${fgc.includes('infrared') ? "checked" : ""}>
-                <label class="form-check-label" for="checkbox3">
-                    Red
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="mint" id="checkbox4" ${fgc.includes('mint') ? "checked" : ""}>
-                <label class="form-check-label" for="checkbox4">
-                    Green
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="ghostwhite" id="checkbox5" ${fgc.includes('ghostwhite') ? "checked" : ""}>
-                <label class="form-check-label" for="checkbox5">
-                    White
-                </label>
-            </div>
-            `,
-        focusConfirm: false,
-        preConfirm: () => {
-            return [
-                document.getElementById('checkbox1').checked ? document.getElementById('checkbox1').value : "",
-                document.getElementById('checkbox2').checked ? document.getElementById('checkbox2').value : "",
-                document.getElementById('checkbox3').checked ? document.getElementById('checkbox3').value : "",
-                document.getElementById('checkbox4').checked ? document.getElementById('checkbox4').value : "",
-                document.getElementById('checkbox5').checked ? document.getElementById('checkbox5').value : ""
-            ]
-        }
-    })
-
-    var selectedNewColor = false;
-    for (var i = 0; i < newColors.length; i++) {
-        if (newColors[i] != "") {
-            selectedNewColor = true;
-            break;
-        }
-    }
-
-    if (!selectedNewColor) {
-        inDialogue = false;
-        return;
-    }
-
-    var {
-        value: newSym
-    } = await Swal.fire({
-        title: 'Choose new symmetry',
-        input: 'range',
-        inputAttributes: {
-            min: 1,
-            max: 12,
-            step: 1
-        },
-        inputValue: symmetry
-    });
-
-    if (!newSym) {
-        inDialogue = false;
-        return;
-    }
-
-    var {
-        value: newChange
-    } = await Swal.fire({
-        title: 'Continuous field change',
-        input: 'range',
-        inputAttributes: {
-            min: 0,
-            max: 0.005,
-            step: 0.0001
-        },
-        inputValue: OFFSET_DZ
-    })
-    if (!newChange) {
-        inDialogue = false;
-        return;
-    }
-
-    var {
-        value: newScale
-    } = await Swal.fire({
-        title: 'Choose scale of noise',
-        input: 'range',
-        inputAttributes: {
-            min: 0.0005,
-            max: 0.1,
-            step: 0.0005
-        },
-        inputValue: SCALE_NOISE
-    })
-    if (!newScale) {
-        inDialogue = false;
-        return;
-    }
-
-    NUM_PARTICLES = newNum;
-    SCALE_NOISE = parseFloat(newScale);
-
-    OFFSET_DZ = parseFloat(newChange);
-    bg = coolors[newBgColor];
-    fgc = newColors;
-    fg = [];
-    for (var i = 0; i < newColors.length; i++) {
-        if (newColors[i] != "") {
-            fg.push(coolors[newColors[i]]);
-            fg[fg.length - 1].setAlpha(25);
-        }
-    }
-    background(bg);
-    symmetry = parseInt(newSym);
-    setupAngles();
-    particles = [];
-    setupParticles();
-    inDialogue = false;
 }
