@@ -17,6 +17,7 @@ var Ss, Cs;
 
 var bg;
 var fg;
+var fgc;
 
 var inDialogue = false;
 
@@ -25,6 +26,9 @@ function setup() {
     bg = coolors.richblack;
     fg = [coolors.spirodisco];
     fg[0].setAlpha(25);
+    fgc = ['spirodisco'];
+
+
     w = window.innerWidth;
     h = window.innerHeight;
     cnv = createCanvas(w, h);
@@ -153,12 +157,13 @@ async function handlePress() {
     var {
         value: newBgColor
     } = await Swal.fire({
-        title: "Choose background color color",
+        title: "Choose background color",
         input: 'radio',
         inputOptions: {
             'richblack': 'Black',
             'ghostwhite': 'White',
         },
+        inputValue: (bg == coolors['richblack'] ? 'richblack' : 'ghostwhite')
     });
 
     if (!newBgColor) {
@@ -172,31 +177,31 @@ async function handlePress() {
         title: 'Choose particle color(s)',
         html: `
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="spirodisco" id="checkbox1">
+                <input class="form-check-input" type="checkbox" value="spirodisco" id="checkbox1" ${fgc.includes('spirodisco') ? "checked" : ""}>
                 <label class="form-check-label" for="checkbox1">
                     Blue
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="gold" id="checkbox2">
+                <input class="form-check-input" type="checkbox" value="gold" id="checkbox2" ${fgc.includes('gold') ? "checked" : ""}>
                 <label class="form-check-label" for="checkbox2">
                     Gold
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="infrared" id="checkbox3">
+                <input class="form-check-input" type="checkbox" value="infrared" id="checkbox3" ${fgc.includes('infrared') ? "checked" : ""}>
                 <label class="form-check-label" for="checkbox3">
                     Red
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="mint" id="checkbox4">
+                <input class="form-check-input" type="checkbox" value="mint" id="checkbox4" ${fgc.includes('mint') ? "checked" : ""}>
                 <label class="form-check-label" for="checkbox4">
                     Green
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="ghostwhite" id="checkbox5">
+                <input class="form-check-input" type="checkbox" value="ghostwhite" id="checkbox5" ${fgc.includes('ghostwhite') ? "checked" : ""}>
                 <label class="form-check-label" for="checkbox5">
                     White
                 </label>
@@ -255,7 +260,7 @@ async function handlePress() {
             max: 0.005,
             step: 0.0001
         },
-        inputValue: 0.0005
+        inputValue: OFFSET_DZ
     })
     if (!newChange) {
         inDialogue = false;
@@ -264,8 +269,9 @@ async function handlePress() {
 
     NUM_PARTICLES = newNum;
 
-    OFFSET_DZ = parseInt(newChange);
+    OFFSET_DZ = parseFloat(newChange);
     bg = coolors[newBgColor];
+    fgc = newColors;
     fg = [];
     for(var i = 0; i<newColors.length; i++){
         if(newColors[i]!=""){
