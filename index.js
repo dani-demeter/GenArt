@@ -40,16 +40,14 @@ function setup() {
         }
     })
     .show();
-
-
     w = window.innerWidth;
     h = window.innerHeight;
     cnv = createCanvas(w, h);
     cnv.position(0, 0);
     cnv.mousePressed(handleCnvPress);
-    onPhone = (w<600);
-    var s = onPhone ? 200 : 50;
-    NUM_PARTICLES = onPhone ? 50 : 20;
+    onPhone = (w/displayDensity()<600);
+    var s = onPhone ? 150 : 50;
+    NUM_PARTICLES = onPhone ? 20 : 50;
 
     var numParticlesButton = createButton('');
     numParticlesButton.class('my-button');
