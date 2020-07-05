@@ -196,7 +196,15 @@ async function handlePress() {
         }
     })
 
-    if (!newColors) {
+    var selectedNewColor = false;
+    for(var i = 0; i<newColors.length; i++){
+        if(newColors[i]!=""){
+            selectedNewColor = true;
+            break;
+        }
+    }
+
+    if (!selectedNewColor) {
         inDialogue = false;
         return;
     }
