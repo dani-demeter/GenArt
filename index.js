@@ -132,6 +132,24 @@ function mousePressed() {
 
 async function handlePress() {
     inDialogue = true;
+
+    var {
+        value: newNum
+    } = await Swal.fire({
+        title: 'Choose number of particles',
+        input: 'range',
+        inputAttributes: {
+            min: 1,
+            max: 100,
+            step: 1
+        },
+        inputValue: NUM_PARTICLES
+    })
+    if (!newNum) {
+        inDialogue = false;
+        return;
+    }
+
     var {
         value: newBgColor
     } = await Swal.fire({
@@ -243,6 +261,8 @@ async function handlePress() {
         inDialogue = false;
         return;
     }
+
+    NUM_PARTICLES = newNum;
 
     OFFSET_DZ = parseInt(newChange);
     bg = coolors[newBgColor];
