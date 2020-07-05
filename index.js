@@ -32,8 +32,13 @@ function setup() {
     }
     new Noty({
         theme: 'nest',
+        timeout: 5000,
         text: "Tap/click anywhere for options",
-    }).show();
+        callbacks: {
+            onClick: handleCnvPress
+        }
+    })
+    .show();
 
 
     w = window.innerWidth;
