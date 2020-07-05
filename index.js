@@ -16,23 +16,74 @@ var symmetry = 3;
 var Ss, Cs;
 
 var bg;
-var fg;
-var fgc;
+var fg = [];
+var fgc = ['spirodisco', 'mint'];
 
-var inDialogue = false;
+var showButtons = true;
+var buttons = [];
 
 function setup() {
     setupCoolors();
     bg = coolors.richblack;
-    fg = [coolors.spirodisco];
-    fg[0].setAlpha(25);
-    fgc = ['spirodisco'];
+
+    for (var i = 0; i < fgc.length; i++) {
+        fg.push(coolors[fgc[i]]);
+        fg[i].setAlpha(25);
+    }
+    new Noty({
+        theme: 'nest',
+        text: "Tap/click anywhere for options",
+    }).show();
 
 
     w = window.innerWidth;
     h = window.innerHeight;
     cnv = createCanvas(w, h);
     cnv.position(0, 0);
+    cnv.mousePressed(handleCnvPress);
+
+    var numParticlesButton = createButton('');
+    numParticlesButton.class('my-button');
+    numParticlesButton.id('num-particles-button');
+    numParticlesButton.position(10, 10);
+    numParticlesButton.mousePressed(handleNumParticlesButton);
+    buttons.push(numParticlesButton);
+
+    var bgColorButton = createButton('');
+    bgColorButton.class('my-button');
+    bgColorButton.id('bg-color-button');
+    bgColorButton.position(10, 70);
+    bgColorButton.mousePressed(handleBGButton);
+    buttons.push(bgColorButton);
+
+    var fgColorButton = createButton('');
+    fgColorButton.class('my-button');
+    fgColorButton.id('fg-color-button');
+    fgColorButton.position(10, 130);
+    fgColorButton.mousePressed(handleFGButton);
+    buttons.push(fgColorButton);
+
+    var symButton = createButton('');
+    symButton.class('my-button');
+    symButton.id('sym-button');
+    symButton.position(10, 190);
+    symButton.mousePressed(handleSymButton);
+    buttons.push(symButton);
+
+    var dzButton = createButton('');
+    dzButton.class('my-button');
+    dzButton.id('dz-button');
+    dzButton.position(10, 250);
+    dzButton.mousePressed(handleDZButton);
+    buttons.push(dzButton);
+
+    var scaleButton = createButton('');
+    scaleButton.class('my-button');
+    scaleButton.id('scale-button');
+    scaleButton.position(10, 310);
+    scaleButton.mousePressed(handleScaleButton);
+    buttons.push(scaleButton);
+    handleCnvPress();
 
     noStroke();
     background(bg);
@@ -103,9 +154,9 @@ class Particle {
 }
 
 function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 
 function inRange(x, y) {
@@ -128,14 +179,205 @@ function UpdateAndDrawParticles() {
     }
 }
 
-function mousePressed() {
-    if (!inDialogue) {
-        handlePress();
+async function handleCnvPress() {
+    showButtons = !showButtons;
+    for(var i = 0; i<buttons.length; i++){
+        if(showButtons){
+            buttons[i].show();
+        }else{
+            buttons[i].hide();
+        }
     }
 }
 
+async function handleNumParticlesButton() {
+    console.log("handleNumParticlesButton");
+    var {
+        value: newNum
+    } = await Swal.fire({
+        title: 'Choose number of particles',
+        input: 'range',
+        inputAttributes: {
+            min: 1,
+            max: 100,
+            step: 1
+        },
+        inputValue: NUM_PARTICLES,
+        showCancelButton: true,
+    })
+    if (newNum) {
+        NUM_PARTICLES = parseInt(newNum);
+        resetSim();
+    }
+}
+
+async function handleBGButton() {
+    console.log("handleBGButton");
+    var {
+        value: newBgColor
+    } = await Swal.fire({
+        title: "Choose background color",
+        input: 'radio',
+        inputOptions: {
+            'richblack': 'Black',
+            'ghostwhite': 'White',
+        },
+        inputValue: (bg == coolors['richblack'] ? 'richblack' : 'ghostwhite'),
+        showCancelButton: true,
+    });
+
+    if (newBgColor) {
+        bg = coolors[newBgColor];
+        resetSim();
+    }
+}
+
+async function handleFGButton() {
+    console.log("handleFGButton");
+    var {
+        value: newColors
+    } = await Swal.fire({
+        title: 'Choose particle color(s)',
+        html: `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="spirodisco" id="checkbox1" ${fgc.includes('spirodisco') ? "checked" : ""}>
+                <label class="form-check-label" for="checkbox1">
+                    Blue
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="gold" id="checkbox2" ${fgc.includes('gold') ? "checked" : ""}>
+                <label class="form-check-label" for="checkbox2">
+                    Gold
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="infrared" id="checkbox3" ${fgc.includes('infrared') ? "checked" : ""}>
+                <label class="form-check-label" for="checkbox3">
+                    Red
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="mint" id="checkbox4" ${fgc.includes('mint') ? "checked" : ""}>
+                <label class="form-check-label" for="checkbox4">
+                    Green
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="ghostwhite" id="checkbox5" ${fgc.includes('ghostwhite') ? "checked" : ""}>
+                <label class="form-check-label" for="checkbox5">
+                    White
+                </label>
+            </div>
+            `,
+        focusConfirm: false,
+        preConfirm: () => {
+            return [
+                document.getElementById('checkbox1').checked ? document.getElementById('checkbox1').value : "",
+                document.getElementById('checkbox2').checked ? document.getElementById('checkbox2').value : "",
+                document.getElementById('checkbox3').checked ? document.getElementById('checkbox3').value : "",
+                document.getElementById('checkbox4').checked ? document.getElementById('checkbox4').value : "",
+                document.getElementById('checkbox5').checked ? document.getElementById('checkbox5').value : ""
+            ]
+        },
+        showCancelButton: true,
+    })
+    if(newColors){
+        var selectedNewColor = false;
+        for (var i = 0; i < newColors.length; i++) {
+            if (newColors[i] != "") {
+                selectedNewColor = true;
+                break;
+            }
+        }
+
+        if (selectedNewColor) {
+            fgc = newColors;
+            fg = [];
+            for (var i = 0; i < newColors.length; i++) {
+                if (newColors[i] != "") {
+                    fg.push(coolors[newColors[i]]);
+                    fg[fg.length - 1].setAlpha(25);
+                }
+            }
+            resetSim();
+        }
+    }
+}
+
+async function handleSymButton() {
+    console.log("handleSymButton");
+    var {
+        value: newSym
+    } = await Swal.fire({
+        title: 'Choose new symmetry',
+        input: 'range',
+        inputAttributes: {
+            min: 1,
+            max: 12,
+            step: 1
+        },
+        inputValue: symmetry,
+        showCancelButton: true,
+    });
+
+    if (newSym) {
+        symmetry = parseInt(newSym);
+        resetSim();
+    }
+}
+
+async function handleDZButton() {
+    console.log("handleDZButton");
+    var {
+        value: newChange
+    } = await Swal.fire({
+        title: 'Continuous field change',
+        input: 'range',
+        inputAttributes: {
+            min: 0,
+            max: 0.005,
+            step: 0.0001
+        },
+        inputValue: OFFSET_DZ,
+        showCancelButton: true,
+    })
+    if (newChange) {
+        OFFSET_DZ = parseFloat(newChange);
+        resetSim();
+    }
+}
+
+async function handleScaleButton() {
+    console.log("handleScaleButton");
+    var {
+        value: newScale
+    } = await Swal.fire({
+        title: 'Choose scale of noise',
+        input: 'range',
+        inputAttributes: {
+            min: 0.0005,
+            max: 0.1,
+            step: 0.0005
+        },
+        inputValue: SCALE_NOISE,
+        showCancelButton: true,
+
+    })
+    if (newScale) {
+        SCALE_NOISE = parseFloat(newScale);
+        resetSim();
+    }
+}
+
+function resetSim(){
+    background(bg);
+    setupAngles();
+    particles = [];
+    setupParticles();
+}
+
 async function handlePress() {
-    inDialogue = true;
 
     var {
         value: newNum
@@ -220,8 +462,8 @@ async function handlePress() {
     })
 
     var selectedNewColor = false;
-    for(var i = 0; i<newColors.length; i++){
-        if(newColors[i]!=""){
+    for (var i = 0; i < newColors.length; i++) {
+        if (newColors[i] != "") {
             selectedNewColor = true;
             break;
         }
@@ -267,16 +509,34 @@ async function handlePress() {
         return;
     }
 
+    var {
+        value: newScale
+    } = await Swal.fire({
+        title: 'Choose scale of noise',
+        input: 'range',
+        inputAttributes: {
+            min: 0.0005,
+            max: 0.1,
+            step: 0.0005
+        },
+        inputValue: SCALE_NOISE
+    })
+    if (!newScale) {
+        inDialogue = false;
+        return;
+    }
+
     NUM_PARTICLES = newNum;
+    SCALE_NOISE = parseFloat(newScale);
 
     OFFSET_DZ = parseFloat(newChange);
     bg = coolors[newBgColor];
     fgc = newColors;
     fg = [];
-    for(var i = 0; i<newColors.length; i++){
-        if(newColors[i]!=""){
+    for (var i = 0; i < newColors.length; i++) {
+        if (newColors[i] != "") {
             fg.push(coolors[newColors[i]]);
-            fg[fg.length-1].setAlpha(25);
+            fg[fg.length - 1].setAlpha(25);
         }
     }
     background(bg);
