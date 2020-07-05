@@ -235,7 +235,7 @@ async function handlePress() {
         inputAttributes: {
             min: 0,
             max: 0.005,
-            step: 0.0005
+            step: 0.0001
         },
         inputValue: 0.0005
     })
