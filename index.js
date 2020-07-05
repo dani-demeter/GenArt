@@ -48,7 +48,8 @@ function setup() {
     cnv.position(0, 0);
     cnv.mousePressed(handleCnvPress);
     onPhone = (w<600);
-    var s = onPhone ? 100 : 50;
+    var s = onPhone ? 200 : 50;
+    NUM_PARTICLES = onPhone ? 50 : 20;
 
     var numParticlesButton = createButton('');
     numParticlesButton.class('my-button');
