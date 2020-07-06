@@ -1,19 +1,22 @@
 var w, h;
 var cnv;
 var onPhone = false;
+var buttonSize;
 
-var NUM_PARTICLES = 50;
-var PARTICLE_R = 2;
+var LIFETIME = 400;
+var NUM_PARTICLES = 30;
+var PARTICLE_R = 3;
 var PARTICLE_D = 2 * PARTICLE_R;
 var particles = [];
+var ALPHA = 255;
 
 var OFFSET_X = 0.5;
 var OFFSET_Y = 0.5;
 var OFFSET_Z = 0.1;
-var OFFSET_DZ = 0.0005;
+var OFFSET_DZ = 0;
 var SCALE_NOISE = 0.001;
 
-var symmetry = 3;
+var symmetry = 1;
 var Ss, Cs;
 
 var bg;
@@ -29,73 +32,36 @@ function setup() {
 
     for (var i = 0; i < fgc.length; i++) {
         fg.push(coolors[fgc[i]]);
-        fg[i].setAlpha(25);
+        fg[i].setAlpha(ALPHA);
     }
     new Noty({
-        theme: 'nest',
-        timeout: 5000,
-        text: "Tap/click anywhere for options",
-        callbacks: {
-            onClick: handleCnvPress
-        }
-    })
-    .show();
+            theme: 'nest',
+            timeout: 5000,
+            text: "Tap/click anywhere for options",
+            callbacks: {
+                onClick: handleCnvPress
+            }
+        })
+        .show();
     w = window.innerWidth;
     h = window.innerHeight;
     cnv = createCanvas(w, h);
     cnv.position(0, 0);
     cnv.mousePressed(handleCnvPress);
-    onPhone = (w/displayDensity()<600);
-    var s = onPhone ? 150 : 50;
-    NUM_PARTICLES = onPhone ? 20 : 50;
+    onPhone = (w / displayDensity() < 600);
+    buttonSize = onPhone ? 100 : 50;
+    NUM_PARTICLES = onPhone ? 20 : NUM_PARTICLES;
 
-    var numParticlesButton = createButton('');
-    numParticlesButton.class('my-button');
-    numParticlesButton.id('num-particles-button');
-    numParticlesButton.position(10, 10);
-    numParticlesButton.size(s, s);
-    numParticlesButton.mousePressed(handleNumParticlesButton);
-    buttons.push(numParticlesButton);
+    setupButton('num-particles-button', 10, 10, handleNumParticlesButton);
+    setupButton('bg-color-button', 10, 10 * 2 + buttonSize, handleBGButton);
+    setupButton('fg-color-button', 10, 10 * 3 + buttonSize * 2, handleFGButton);
+    setupButton('sym-button', 10, 10 * 4 + buttonSize * 3, handleSymButton);
+    setupButton('dz-button', 10, 10 * 5 + buttonSize * 4, handleDZButton);
+    setupButton('scale-button', 10, 10 * 6 + buttonSize * 5, handleScaleButton);
+    setupButton('lifetime-button', 10, 10 * 7 + buttonSize * 6, handleLifetimeButton);
+    setupButton('particle-width-button', 10 * 2 + buttonSize, 10, handleParticleWidthButton);
+    setupButton('particle-alpha-button', 10 * 2 + buttonSize, 10 * 2 + buttonSize, handleParticleAlphaButton);
 
-    var bgColorButton = createButton('');
-    bgColorButton.class('my-button');
-    bgColorButton.id('bg-color-button');
-    bgColorButton.position(10, 10*2+s);
-    bgColorButton.size(s, s);
-    bgColorButton.mousePressed(handleBGButton);
-    buttons.push(bgColorButton);
-
-    var fgColorButton = createButton('');
-    fgColorButton.class('my-button');
-    fgColorButton.id('fg-color-button');
-    fgColorButton.position(10, 10*3+s*2);
-    fgColorButton.size(s, s);
-    fgColorButton.mousePressed(handleFGButton);
-    buttons.push(fgColorButton);
-
-    var symButton = createButton('');
-    symButton.class('my-button');
-    symButton.id('sym-button');
-    symButton.position(10, 10*4+s*3);
-    symButton.size(s, s);
-    symButton.mousePressed(handleSymButton);
-    buttons.push(symButton);
-
-    var dzButton = createButton('');
-    dzButton.class('my-button');
-    dzButton.id('dz-button');
-    dzButton.position(10, 10*5+s*4);
-    dzButton.size(s, s);
-    dzButton.mousePressed(handleDZButton);
-    buttons.push(dzButton);
-
-    var scaleButton = createButton('');
-    scaleButton.class('my-button');
-    scaleButton.id('scale-button');
-    scaleButton.position(10, 10*6+s*5);
-    scaleButton.size(s, s);
-    scaleButton.mousePressed(handleScaleButton);
-    buttons.push(scaleButton);
     handleCnvPress();
 
     noStroke();
@@ -104,6 +70,16 @@ function setup() {
     setupAngles();
 
     setupParticles();
+}
+
+function setupButton(bid, posX, posY, fn) {
+    var b = createButton('');
+    b.class('my-button');
+    b.id(bid);
+    b.position(posX, posY);
+    b.size(buttonSize, buttonSize);
+    b.mousePressed(fn);
+    buttons.push(b);
 }
 
 function setupAngles() {
@@ -124,9 +100,23 @@ function setupParticles() {
 
 class Particle {
     constructor() {
+        this.spawn();
+    }
+
+    spawn() {
         this.x = Math.random() * w;
         this.y = Math.random() * h;
-        this.color = fg[getRandomInt(0, fg.length)];
+        var c = fg[getRandomInt(0, fg.length)];
+        this.color = color(red(c), green(c), blue(c));
+        this.color.setAlpha(ALPHA);
+        if (LIFETIME != 0) {
+            this.lifetime = ((Math.random() / 2) + 0.5) * LIFETIME;
+            this.dr = (red(bg) - red(this.color)) / this.lifetime;
+            this.dg = (green(bg) - green(this.color)) / this.lifetime;
+            this.db = (blue(bg) - blue(this.color)) / this.lifetime;
+            this.life = 0;
+        }
+
     }
 
     update() {
@@ -148,6 +138,20 @@ class Particle {
             this.y -= h;
         } else if (this.y < 0) {
             this.y += h;
+        }
+        if (LIFETIME != 0) {
+            this.decaySaturation();
+        }
+    }
+
+    decaySaturation() {
+        this.color.setRed(red(this.color) + this.dr);
+        this.color.setGreen(green(this.color) + this.dg);
+        this.color.setBlue(blue(this.color) + this.db);
+        this.color.setAlpha(ALPHA);
+        this.life++;
+        if (this.life > this.lifetime) {
+            this.spawn();
         }
     }
 
@@ -194,10 +198,10 @@ function UpdateAndDrawParticles() {
 
 async function handleCnvPress() {
     showButtons = !showButtons;
-    for(var i = 0; i<buttons.length; i++){
-        if(showButtons){
+    for (var i = 0; i < buttons.length; i++) {
+        if (showButtons) {
             buttons[i].show();
-        }else{
+        } else {
             buttons[i].hide();
         }
     }
@@ -295,7 +299,7 @@ async function handleFGButton() {
         },
         showCancelButton: true,
     })
-    if(newColors){
+    if (newColors) {
         var selectedNewColor = false;
         for (var i = 0; i < newColors.length; i++) {
             if (newColors[i] != "") {
@@ -370,7 +374,7 @@ async function handleScaleButton() {
         input: 'range',
         inputAttributes: {
             min: 0.0005,
-            max: 0.1,
+            max: 0.05,
             step: 0.0005
         },
         inputValue: SCALE_NOISE,
@@ -383,7 +387,73 @@ async function handleScaleButton() {
     }
 }
 
-function resetSim(){
+async function handleLifetimeButton() {
+    console.log("handleLifetimeButton");
+    var {
+        value: newLifetime
+    } = await Swal.fire({
+        title: 'Choose lifetime of particles (frames)',
+        text: 'Choose a lifetime of 0 for immortal particles',
+        input: 'range',
+        inputAttributes: {
+            min: 0,
+            max: 1000,
+            step: 5
+        },
+        inputValue: LIFETIME,
+        showCancelButton: true,
+
+    })
+    if (newLifetime) {
+        LIFETIME = parseInt(newLifetime);
+        resetSim();
+    }
+}
+
+async function handleParticleWidthButton() {
+    console.log("handleParticleWidthButton");
+    var {
+        value: newWidth
+    } = await Swal.fire({
+        title: 'Choose particle radius',
+        input: 'range',
+        inputAttributes: {
+            min: 1,
+            max: 10,
+            step: 1
+        },
+        inputValue: PARTICLE_R,
+        showCancelButton: true,
+    })
+    if (newWidth) {
+        PARTICLE_R = parseInt(newWidth);
+        PARTICLE_D = 2 * PARTICLE_R
+        resetSim();
+    }
+}
+
+async function handleParticleAlphaButton(){
+    console.log("handleParticleAlphaButton");
+    var {
+        value: newAlpha
+    } = await Swal.fire({
+        title: 'Choose particle transparency',
+        input: 'range',
+        inputAttributes: {
+            min: 1,
+            max: 255,
+            step: 1
+        },
+        inputValue: ALPHA,
+        showCancelButton: true,
+    })
+    if (newAlpha) {
+        ALPHA = parseInt(newAlpha);
+        resetSim();
+    }
+}
+
+function resetSim() {
     background(bg);
     setupAngles();
     particles = [];

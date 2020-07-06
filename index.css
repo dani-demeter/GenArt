@@ -38,6 +38,18 @@ body{
     background: url('images/ScaleIcon.png');
 }
 
+#lifetime-button{
+    background: url('images/LifetimeIcon.png');
+}
+
+#particle-width-button{
+    background: url('images/ParticleWidthIcon.png');
+}
+
+#particle-alpha-button{
+    background: url('images/ParticleAlphaIcon.png');
+}
+
 #defaultCanvas0{
     z-index: -1;
 }
